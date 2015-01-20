@@ -1,0 +1,1 @@
+CREATE OR REPLACE TRIGGER Client_une_remise
