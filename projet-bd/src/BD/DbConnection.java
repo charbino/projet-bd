@@ -7,7 +7,7 @@ import java.sql.DriverManager;
 //classe qui permet de gérer la connection à la base de donnée
 public class DbConnection {
 	
-	private static Connection instanceBD = null;
+	private static Connection instanceBD;
 	private static String url = "jdbc:oracle:thin:@im2ag-oracle.e.ujf-grenoble.fr:1521:ufrima";
 	private static String user = "framines";
 	private static String passwd = "bd2015";
