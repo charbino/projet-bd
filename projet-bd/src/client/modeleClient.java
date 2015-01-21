@@ -3,6 +3,7 @@ package client;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,28 +17,39 @@ public class modeleClient {
 	public static HashMap getVeloLibreStation(String adresseStation) throws SQLException{
 		System.out.println("not implemented");
 		
-		String sql="select id_bornette "
+		String sql="select * "
 				+  "from Bornette "
 				+  "where adresse_station='"+adresseStation+"' "
-				+  "and id_velo in (select id_velo from velo where etat_velo='OK');";
+				+  "and id_velo in (select id_velo from velo where etat_velo='OK')";
 		
 		System.out.print("requete : "+ sql);
 		
-		HashMap listeVeloLibreBornette = null;
+		HashMap listeVeloLibreBornette = new HashMap();
 		Connection connection = DbConnection.getInstance();
 		PreparedStatement prepare = connection.prepareStatement(sql);
 		
 		ResultSet result = prepare.executeQuery();
 		
+		
+		String id_bornette;
+		String adresse_station;
 		int i=1;
 		while(result.next()){
+			id_bornette		= result.getString("id_bornette");
+			adresse_station = result.getString("adresse_station");
 			
-			listeVeloLibreBornette.put(i, result.getObject(i));
+			
+			listeVeloLibreBornette.put(i,id_bornette);
 			
 			i++;
 		}
 		
+		result.close();
+		prepare.close();
+		
 		return listeVeloLibreBornette;
+		
+		
 		
 		
 	}

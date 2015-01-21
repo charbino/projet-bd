@@ -12,10 +12,11 @@ public class DbConnection {
 	private static String user = "framines";
 	private static String passwd = "bd2015";
 	
+	
 	  public static Connection getInstance() {      
 		  try {
 	    	if(instanceBD==null){
-	    		Connection conn = DriverManager.getConnection(url, user, passwd);
+	    		instanceBD = DriverManager.getConnection(url, user, passwd);
 	    		System.out.println("--Connexion à la base de donnée effectué--");  
 	    	}
 	         

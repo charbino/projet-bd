@@ -64,10 +64,10 @@ public class IhmCLient {
 		
 		//on affiche les bornes disponibles
 		try {
-			HashMap borneDispo;
+			HashMap borneDispo = new HashMap();
 			borneDispo = modeleClient.getVeloLibreStation(adresseStation);
 			
-			for(int i = 0; i < borneDispo.size(); ++i)
+			for(int i = 1; i < borneDispo.size(); ++i)
 			{
 				System.out.println(borneDispo.get(i));
 			}
