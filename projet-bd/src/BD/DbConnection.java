@@ -17,7 +17,7 @@ public class DbConnection {
 		  try {
 	    	if(instanceBD==null){
 	    		instanceBD = DriverManager.getConnection(url, user, passwd);
-	    		System.out.println("--Connexion à la base de donnée effectué--");  
+	    		System.out.println("INFO : Connexion à la base de donnée effectué");  
 	    	}
 	         
 		  }catch (Exception e) {

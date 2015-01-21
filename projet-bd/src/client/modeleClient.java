@@ -15,21 +15,19 @@ public class modeleClient {
 
 	//permet de recupererer les vélo disponible d'une station
 	public static HashMap getVeloLibreStation(String adresseStation) throws SQLException{
-		System.out.println("not implemented");
 		
 		String sql="select * "
 				+  "from Bornette "
 				+  "where adresse_station='"+adresseStation+"' "
 				+  "and id_velo in (select id_velo from velo where etat_velo='OK')";
 		
-		System.out.print("requete : "+ sql);
+		System.out.println("INFO : requete : "+ sql);
 		
 		HashMap listeVeloLibreBornette = new HashMap();
 		Connection connection = DbConnection.getInstance();
 		PreparedStatement prepare = connection.prepareStatement(sql);
 		
 		ResultSet result = prepare.executeQuery();
-		
 		
 		String id_bornette;
 		String adresse_station;
@@ -52,6 +50,19 @@ public class modeleClient {
 		
 		
 		
+	}
+
+	public static boolean abonnementExiste(String codeSecret) throws SQLException {
+		
+		String sql="Select * from abonne where code_secret = '"+codeSecret+"'";
+		Connection connection = DbConnection.getInstance();
+		PreparedStatement prepare = connection.prepareStatement(sql);
+		
+		ResultSet result = prepare.executeQuery();
+		
+		return result.first();
+		
+
 	}
 	
 }

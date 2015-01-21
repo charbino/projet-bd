@@ -57,25 +57,52 @@ public class IhmCLient {
 
 	private void louerUnVelo() {
 		
+		//Abonné ? non Abonné ? 
+		Scanner scAb = new Scanner(System.in);
+		int choixAB;
+		System.out.println("Etes-vous abonné ? ");
+		do{
+			
+			System.out.println("1- Oui");
+			System.out.println("2- Non");
+			choixAB = scAb.nextInt();
+		}
+		while(choixAB!=1 && choixAB!=2);
+		
+		
+		if(choixAB==1){
+			//verification des identifiants
+			verifierAbonne();
+		}
+		else if(choixAB==2){
+			
+		}
+		
+		
 		//on recupère les bornes disponible
 		Scanner sc = new Scanner(System.in);
+		System.out.println("+-------------------------------+");
 		System.out.println("System : adresse de la station ? ");
 		String adresseStation = sc.nextLine();
+		System.out.println("+-------------------------------+");
 		
 		//on affiche les bornes disponibles
 		try {
 			HashMap borneDispo = new HashMap();
 			borneDispo = modeleClient.getVeloLibreStation(adresseStation);
+			System.out.println("");
+			System.out.println("Liste des vélo disponible pour la station "+adresseStation+" :" );
 			
-			for(int i = 1; i < borneDispo.size(); ++i)
-			{
-				System.out.println(borneDispo.get(i));
+			for(int i = 1; i <= borneDispo.size(); ++i){
+				System.out.println(i+"- "+ borneDispo.get(i));
 			}
 			
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
+		
 		
 		
 		
@@ -86,4 +113,28 @@ public class IhmCLient {
 	
 
 
+
+
+	//verifie 
+	private void verifierAbonne() {
+
+		System.out.println("Votre numéro abonné :");
+		Scanner scNumAb = new Scanner(System.in);
+		String numAB;
+		numAB = scNumAb.nextLine();
+		
+		//on verifie que l'abonnement existe
+		try {
+			if (modeleClient.abonnementExiste(numAB)){
+			
+				System.out.println("ouii");
+			}
+			else{
+				System.out.println("non");
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 }
