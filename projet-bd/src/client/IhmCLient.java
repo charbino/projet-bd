@@ -57,9 +57,12 @@ public class IhmCLient {
 
 	private void louerUnVelo() {
 		
+		Boolean isAbonne;
+		
 		//Abonné ? non Abonné ? 
 		Scanner scAb = new Scanner(System.in);
 		int choixAB;
+		
 		System.out.println("Etes-vous abonné ? ");
 		do{
 			
@@ -71,10 +74,13 @@ public class IhmCLient {
 		
 		
 		if(choixAB==1){
+			//isAbonne= true;
+			
 			//verification des identifiants
 			verifierAbonne();
 		}
 		else if(choixAB==2){
+			isAbonne= false;
 			
 		}
 		
@@ -104,37 +110,50 @@ public class IhmCLient {
 		
 		
 		
-		
-		
 	}
 	
 	
 	
-	
 
 
 
 
-	//verifie 
-	private void verifierAbonne() {
+	//verifie que l'abonné est bien dans la bd
+	private Boolean verifierAbonne() {
 
 		System.out.println("Votre numéro abonné :");
 		Scanner scNumAb = new Scanner(System.in);
 		String numAB;
+		Boolean abonnementValide=false;
 		numAB = scNumAb.nextLine();
 		
 		//on verifie que l'abonnement existe
 		try {
 			if (modeleClient.abonnementExiste(numAB)){
 			
-				System.out.println("ouii");
+				System.out.println("Abonnement existant");
+				
+				//on verifie la validité de l'abonnement
+				if (modeleClient.abonnementValide(numAB)){
+					System.out.println("Abonnement valide");
+					abonnementValide=true;
+				}
+				else{
+					System.out.println("Erreur l'abonnement n'est plus valide, veuillez le renouveller");
+					abonnementValide=false;
+				}
 			}
 			else{
-				System.out.println("non");
+				System.out.println("Erreur l'abonnement existe pas");
+				abonnementValide=false;
 			}
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
+		return abonnementValide;
+		
+
 	}
 }

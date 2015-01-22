@@ -54,15 +54,37 @@ public class modeleClient {
 
 	public static boolean abonnementExiste(String codeSecret) throws SQLException {
 		
-		String sql="Select * from abonne where code_secret = '"+codeSecret+"'";
+
+		Boolean existe;
+		
+		String sql="Select count(*) from abonne where code_secret='"+codeSecret+"'";
+		
+		//System.out.println("INFO : requete : "+ sql);
+		
+		Connection connection = DbConnection.getInstance();
+		PreparedStatement prepare = connection.prepareStatement(sql);
+		
+		ResultSet result = prepare.executeQuery();
+	
+		return result.next();
+		
+
+	}
+
+	//verifie que le client possède un abonnement valide
+	//pre-requis : l'abonnement existe déja
+	public static boolean abonnementValide(String codeSecret) throws SQLException {
+		
+		String sql ="select * from abonne where code_secret='"+codeSecret+"' and add_months(DATE_DEBUT_ABONNEMENT,12) >= sysdate";
+		//System.out.println("INFO : requete : "+ sql);
+		
 		Connection connection = DbConnection.getInstance();
 		PreparedStatement prepare = connection.prepareStatement(sql);
 		
 		ResultSet result = prepare.executeQuery();
 		
-		return result.first();
-		
-
+		//permet de savoir si il existe dans la table
+		return result.next();
 	}
 	
 }
