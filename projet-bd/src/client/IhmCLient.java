@@ -1,6 +1,8 @@
 package client;
 
 import java.sql.SQLException;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Scanner;
 
@@ -21,6 +23,7 @@ public class IhmCLient {
 	
 	public void afficherMenu(){
 		
+	    
 		System.out.println("--Menu : --");
 		System.out.println("1-- Louer un Vélo");
 		System.out.println("2-- S'abonner");
@@ -167,6 +170,16 @@ public class IhmCLient {
 				
 				//on ajoute la location et on supprime le vélo dans bornette
 				modeleClient.creerLocation(idCLient,idBornetteChoisit,adresseStation);
+				System.out.println("Vous pouvez prendre votre vélo");
+				
+
+				//gestion de la date de retour
+				Calendar cal = Calendar.getInstance();
+			    cal.setTime(new Date()); 
+			    cal.add(Calendar.HOUR_OF_DAY, 12);
+				
+			    
+				System.out.println("Vous devez le rendre avant : "+ cal.getTime());
 				
 				
 			}

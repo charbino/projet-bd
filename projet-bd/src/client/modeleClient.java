@@ -92,7 +92,7 @@ public class modeleClient {
 
 		String sql ="select count(*) from nonAbonne where code_secret_non_abonne="+codeSecret;
 		
-		System.out.println("INFO : requete : "+ sql);
+		//System.out.println("INFO : requete : "+ sql);
 		
 		Connection connection = DbConnection.getInstance();
 		PreparedStatement prepare = connection.prepareStatement(sql);
@@ -115,7 +115,7 @@ public class modeleClient {
 		
 		String sql ="insert into Client values('"+idUniqueClient.toString()+"',null)";
 		
-		System.out.println("INFO : requete : "+ sql);
+		//System.out.println("INFO : requete : "+ sql);
 		
 		
 		PreparedStatement prepare = connection.prepareStatement(sql);
@@ -126,7 +126,7 @@ public class modeleClient {
 
 		String sql2 ="insert into nonAbonne values("+cBClient+",'"+idUniqueClient.toString()+"','"+codeSecretNonAbonne+"')";
 
-		System.out.println("INFO : requete : "+ sql2);
+		//System.out.println("INFO : requete : "+ sql2);
 		
 		PreparedStatement prepare2 = connection.prepareStatement(sql2);
 		
@@ -149,7 +149,7 @@ public class modeleClient {
 		
 		// -------- création une location------------
 		UUID idLocation = UUID.randomUUID();
-		System.out.println("id : "+idLocation);
+		//System.out.println("id : "+idLocation);
 		
 		//on recherche l'id du vélo
 		String sqlVelo ="Select id_velo from bornette where id_bornette ='"+ idBornetteChoisit+"'";
@@ -163,7 +163,7 @@ public class modeleClient {
 		{
 			String idVelo = resultVelo.getString("id_velo");
 			String sqlInsertLocation ="insert into Location values('"+idLocation.toString()+"','"+idCLient+"',to_char( sysdate , 'YYYY' ),'"+idVelo+"','"+idBornetteChoisit+"',null,sysdate,null)";
-			System.out.println("requete : " +sqlInsertLocation);
+			//System.out.println("INFO : requete : " +sqlInsertLocation);
 			PreparedStatement prepareInsertLocation = connection.prepareStatement(sqlInsertLocation);
 			
 			prepareInsertLocation.executeUpdate();
@@ -172,7 +172,7 @@ public class modeleClient {
 			
 			//-------Suppresion  velo de la bornette-----------
 			String sqlSupprVeloBornette = "update Bornette set id_velo=null where id_velo='"+idVelo +"' and id_bornette='"+idBornetteChoisit +"'" ;
-			System.out.println("requete : " +sqlSupprVeloBornette);
+			//System.out.println("INFO : requete : " +sqlSupprVeloBornette);
 			PreparedStatement prepareSupprVeloBornette = connection.prepareStatement(sqlSupprVeloBornette);
 			prepareSupprVeloBornette.executeUpdate();
 			
