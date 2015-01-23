@@ -87,4 +87,8 @@ public class modeleClient {
 		return result.next();
 	}
 	
+	public void mafonctiondetest(){
+		
+	}
+	
 }
