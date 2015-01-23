@@ -57,7 +57,7 @@ public class IhmCLient {
 
 	private void louerUnVelo() {
 		
-		Boolean isAbonne;
+		Boolean isAbonne= false;
 		
 		//Abonné ? non Abonné ? 
 		Scanner scAb = new Scanner(System.in);
@@ -74,10 +74,13 @@ public class IhmCLient {
 		
 		
 		if(choixAB==1){
-			//isAbonne= true;
+			isAbonne= true;
 			
 			//verification des identifiants
-			verifierAbonne();
+			if (!verifierAbonne()){
+				System.out.println("Erreur sur l'abonné");
+				this.choixMenu();
+			}
 		}
 		else if(choixAB==2){
 			isAbonne= false;
@@ -92,15 +95,70 @@ public class IhmCLient {
 		String adresseStation = sc.nextLine();
 		System.out.println("+-------------------------------+");
 		
-		//on affiche les bornes disponibles
+		//on affiche les bornes disponibles (= vélo disponible)
 		try {
 			HashMap borneDispo = new HashMap();
 			borneDispo = modeleClient.getVeloLibreStation(adresseStation);
 			System.out.println("");
 			System.out.println("Liste des vélo disponible pour la station "+adresseStation+" :" );
 			
-			for(int i = 1; i <= borneDispo.size(); ++i){
-				System.out.println(i+"- "+ borneDispo.get(i));
+			
+			int nombreVeloDisonible = borneDispo.size();
+			
+			if (nombreVeloDisonible==0){
+				System.out.println("Il n'y a pas de vélo disponible");
+				
+			}else{
+				for(int i = 1; i <= nombreVeloDisonible; ++i){
+					System.out.println(i+"- "+ borneDispo.get(i));
+				}	
+				
+				
+				//choix du vélo disponible
+				
+				Scanner scannerChoixVeloLibre = new Scanner(System.in);
+				int choixVeloLibre;
+				
+				do{
+					System.out.println("Quel numéro de vélo ? ");
+					choixVeloLibre = scannerChoixVeloLibre.nextInt();
+				}
+				while(choixVeloLibre<0 || choixVeloLibre>nombreVeloDisonible );
+				
+				
+				if(isAbonne){
+					
+				}else{
+					//si il n'est pas abboné on l'ajoute dans la base
+					//1 on genere un code secret client
+					int Min = 10000000;
+					int Max = 99999999;
+					
+					int nombreAleatoire = Min + (int)(Math.random() * ((Max - Min) + 1));
+				
+					//verifie que ce code n'exsite déja pas 
+					if( ! modeleClient.codeSecretNonAbonneUnique(nombreAleatoire) ){
+						System.out.println("Erreur L'ID n'est pas unique");
+					}
+
+					
+					//2 on 	L'insert
+					Scanner scCBCLient = new Scanner(System.in);
+					System.out.println("+-------------------------------+");
+					System.out.println("System : CB du client ? ");
+					int CBClient = scCBCLient.nextInt();
+					System.out.println("+-------------------------------+");
+					
+					modeleClient.insererNonAbonne(nombreAleatoire,CBClient);
+					
+
+					
+				}
+				
+				//on ajoute la location et on supprime le vélo dans bornette
+				
+				
+				
 			}
 			
 		} catch (SQLException e) {

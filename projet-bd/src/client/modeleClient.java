@@ -7,6 +7,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.UUID;
 
 import BD.DbConnection;
 
@@ -55,7 +56,6 @@ public class modeleClient {
 	public static boolean abonnementExiste(String codeSecret) throws SQLException {
 		
 
-		Boolean existe;
 		
 		String sql="Select count(*) from abonne where code_secret='"+codeSecret+"'";
 		
@@ -85,6 +85,47 @@ public class modeleClient {
 		
 		//permet de savoir si il existe dans la table
 		return result.next();
+	}
+
+	public static boolean codeSecretNonAbonneUnique(int codeSecret) throws SQLException {
+		
+
+		String sql ="select count(*) from nonAbonne where code_secret_non_abonne="+codeSecret;
+		
+		System.out.println("INFO : requete : "+ sql);
+		
+		Connection connection = DbConnection.getInstance();
+		PreparedStatement prepare = connection.prepareStatement(sql);
+		
+		ResultSet result = prepare.executeQuery();
+		
+		return result.next();
+	}
+
+	public static void insererNonAbonne(int codeSecretNonAbonne, int cBClient) throws SQLException {
+		
+		//on insere dans la table client 
+		UUID idUniqueClient = UUID.randomUUID();
+		System.out.println("id : "+idUniqueClient);
+		
+		String sql ="insert into Client values('"+idUniqueClient+"',null)";
+		
+		System.out.println("INFO : requete : "+ sql);
+		
+		Connection connection = DbConnection.getInstance();
+		PreparedStatement prepare = connection.prepareStatement(sql);
+		
+		prepare.executeUpdate();
+		
+		//Insertion dans la table nonAbonne
+
+		String sql2 ="insert into nonAbonne values("+cBClient+",'"+ idUniqueClient+"','"+codeSecretNonAbonne+"')";
+
+		System.out.println("INFO : requete : "+ sql2);
+		
+		PreparedStatement prepare2 = connection.prepareStatement(sql);
+		
+		prepare2.executeUpdate();
 	}
 	
 }
