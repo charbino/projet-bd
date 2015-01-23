@@ -104,28 +104,38 @@ public class modeleClient {
 
 	public static void insererNonAbonne(int codeSecretNonAbonne, int cBClient) throws SQLException {
 		
+		Connection connection = DbConnection.getInstance();
+		
 		//on insere dans la table client 
 		UUID idUniqueClient = UUID.randomUUID();
 		System.out.println("id : "+idUniqueClient);
+		
+		//--------début de la transaction--------------------------
+		connection.setAutoCommit(false);
 		
 		String sql ="insert into Client values('"+idUniqueClient+"',null)";
 		
 		System.out.println("INFO : requete : "+ sql);
 		
-		Connection connection = DbConnection.getInstance();
+		
 		PreparedStatement prepare = connection.prepareStatement(sql);
 		
 		prepare.executeUpdate();
 		
 		//Insertion dans la table nonAbonne
 
-		String sql2 ="insert into nonAbonne values("+cBClient+",'"+ idUniqueClient+"','"+codeSecretNonAbonne+"')";
+		String sql2 ="insert into nonAbonne values("+cBClient+",'"+idUniqueClient+"','"+codeSecretNonAbonne+"')";
 
 		System.out.println("INFO : requete : "+ sql2);
 		
-		PreparedStatement prepare2 = connection.prepareStatement(sql);
+		PreparedStatement prepare2 = connection.prepareStatement(sql2);
 		
 		prepare2.executeUpdate();
+		
+		connection.commit();// c'est ici que l'on valide la transaction
+		connection.setAutoCommit(true);
+		
+		//--------Fin de la transaction--------------------------
 	}
 	
 }
