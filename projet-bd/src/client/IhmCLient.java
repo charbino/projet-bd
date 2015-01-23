@@ -62,6 +62,7 @@ public class IhmCLient {
 		//Abonné ? non Abonné ? 
 		Scanner scAb = new Scanner(System.in);
 		int choixAB;
+		String numAbonne = null;
 		
 		System.out.println("Etes-vous abonné ? ");
 		do{
@@ -77,10 +78,12 @@ public class IhmCLient {
 			isAbonne= true;
 			
 			//verification des identifiants
-			if (!verifierAbonne()){
+			numAbonne = verifierAbonne();
+			if (numAbonne.equals("X-X")){
 				System.out.println("Erreur sur l'abonné");
 				this.choixMenu();
 			}
+			
 		}
 		else if(choixAB==2){
 			isAbonne= false;
@@ -126,10 +129,11 @@ public class IhmCLient {
 				while(choixVeloLibre<0 || choixVeloLibre>nombreVeloDisonible );
 				
 				 String idBornetteChoisit = borneDispo.get(choixVeloLibre).toString();
-				
+				 String idCLient;
 				
 				if(isAbonne){
 					
+					idCLient = modeleClient.chercherCLient(numAbonne);
 				}else{
 					//si il n'est pas abboné on l'ajoute dans la base
 					//1 on genere un code secret client
@@ -151,11 +155,7 @@ public class IhmCLient {
 					int CBClient = scCBCLient.nextInt();
 					System.out.println("+-------------------------------+");
 					
-					String idCLient = modeleClient.insererNonAbonne(nombreAleatoireCodeSecretNonAbonne,CBClient);
-					
-					//on ajoute la location et on supprime le vélo dans bornette
-					modeleClient.creerLocation(idCLient,idBornetteChoisit,adresseStation);
-					
+					 idCLient = modeleClient.insererNonAbonne(nombreAleatoireCodeSecretNonAbonne,CBClient);
 					
 					System.out.println("------------------------------------------");
 					System.out.println("Voici vote code secret : "+nombreAleatoireCodeSecretNonAbonne);
@@ -165,7 +165,8 @@ public class IhmCLient {
 				}
 				
 				
-				
+				//on ajoute la location et on supprime le vélo dans bornette
+				modeleClient.creerLocation(idCLient,idBornetteChoisit,adresseStation);
 				
 				
 			}
@@ -179,14 +180,10 @@ public class IhmCLient {
 		
 	}
 	
-	
-	
-
-
 
 
 	//verifie que l'abonné est bien dans la bd
-	private Boolean verifierAbonne() {
+	private String verifierAbonne() {
 
 		System.out.println("Votre numéro abonné :");
 		Scanner scNumAb = new Scanner(System.in);
@@ -204,10 +201,13 @@ public class IhmCLient {
 				if (modeleClient.abonnementValide(numAB)){
 					System.out.println("Abonnement valide");
 					abonnementValide=true;
+					
+					
 				}
 				else{
 					System.out.println("Erreur l'abonnement n'est plus valide, veuillez le renouveller");
 					abonnementValide=false;
+					
 				}
 			}
 			else{
@@ -218,8 +218,12 @@ public class IhmCLient {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		if (abonnementValide){
+		}else{
+			numAB="X-X";
+		}
 		
-		return abonnementValide;
+		return numAB;
 		
 
 	}

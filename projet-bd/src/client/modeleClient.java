@@ -132,7 +132,7 @@ public class modeleClient {
 		
 		prepare2.executeUpdate();
 		
-		connection.commit();// c'est ici que l'on valide la transaction
+		connection.commit();
 		connection.setAutoCommit(true);
 		
 		//--------Fin de la transaction--------------------------
@@ -184,6 +184,22 @@ public class modeleClient {
 		connection.commit();
 		connection.setAutoCommit(true);
 		
+	}
+
+	public static String chercherCLient(String numAbonne) throws SQLException {
+		// permet de chercher un client avec le numAbonne
+		String sql = "select id_client from abonne where code_secret='"+numAbonne+"'";
+		
+		Connection connection = DbConnection.getInstance();
+		PreparedStatement prepare = connection.prepareStatement(sql);
+		
+		ResultSet result = prepare.executeQuery();
+		
+		result.next();
+		String idClient = result.getString("id_client");
+		result.close();
+		
+		return idClient;
 	}
 	
 }
