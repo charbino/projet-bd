@@ -125,6 +125,8 @@ public class IhmCLient {
 				}
 				while(choixVeloLibre<0 || choixVeloLibre>nombreVeloDisonible );
 				
+				 String idBornetteChoisit = borneDispo.get(choixVeloLibre).toString();
+				
 				
 				if(isAbonne){
 					
@@ -134,10 +136,10 @@ public class IhmCLient {
 					int Min = 10000000;
 					int Max = 99999999;
 					
-					int nombreAleatoire = Min + (int)(Math.random() * ((Max - Min) + 1));
+					int nombreAleatoireCodeSecretNonAbonne = Min + (int)(Math.random() * ((Max - Min) + 1));
 				
 					//verifie que ce code n'exsite déja pas 
-					if( ! modeleClient.codeSecretNonAbonneUnique(nombreAleatoire) ){
+					if( ! modeleClient.codeSecretNonAbonneUnique(nombreAleatoireCodeSecretNonAbonne) ){
 						System.out.println("Erreur L'ID n'est pas unique");
 					}
 
@@ -149,13 +151,20 @@ public class IhmCLient {
 					int CBClient = scCBCLient.nextInt();
 					System.out.println("+-------------------------------+");
 					
-					modeleClient.insererNonAbonne(nombreAleatoire,CBClient);
+					String idCLient = modeleClient.insererNonAbonne(nombreAleatoireCodeSecretNonAbonne,CBClient);
 					
-
+					//on ajoute la location et on supprime le vélo dans bornette
+					modeleClient.creerLocation(idCLient,idBornetteChoisit,adresseStation);
+					
+					
+					System.out.println("------------------------------------------");
+					System.out.println("Voici vote code secret : "+nombreAleatoireCodeSecretNonAbonne);
+					System.out.println("\nAttention ce code vous servira à rendre le vélo");
+					System.out.println("------------------------------------------");
 					
 				}
 				
-				//on ajoute la location et on supprime le vélo dans bornette
+				
 				
 				
 				

@@ -102,7 +102,7 @@ public class modeleClient {
 		return result.next();
 	}
 
-	public static void insererNonAbonne(int codeSecretNonAbonne, int cBClient) throws SQLException {
+	public static String insererNonAbonne(int codeSecretNonAbonne, int cBClient) throws SQLException {
 		
 		Connection connection = DbConnection.getInstance();
 		
@@ -113,7 +113,7 @@ public class modeleClient {
 		//--------début de la transaction--------------------------
 		connection.setAutoCommit(false);
 		
-		String sql ="insert into Client values('"+idUniqueClient+"',null)";
+		String sql ="insert into Client values('"+idUniqueClient.toString()+"',null)";
 		
 		System.out.println("INFO : requete : "+ sql);
 		
@@ -124,7 +124,7 @@ public class modeleClient {
 		
 		//Insertion dans la table nonAbonne
 
-		String sql2 ="insert into nonAbonne values("+cBClient+",'"+idUniqueClient+"','"+codeSecretNonAbonne+"')";
+		String sql2 ="insert into nonAbonne values("+cBClient+",'"+idUniqueClient.toString()+"','"+codeSecretNonAbonne+"')";
 
 		System.out.println("INFO : requete : "+ sql2);
 		
@@ -136,6 +136,54 @@ public class modeleClient {
 		connection.setAutoCommit(true);
 		
 		//--------Fin de la transaction--------------------------
+		
+		return idUniqueClient.toString();
+	}
+
+	public static void creerLocation(String idCLient, String idBornetteChoisit,
+			String adresseStation) throws SQLException {
+		
+		Connection connection = DbConnection.getInstance();
+		connection.setAutoCommit(false);
+		
+		
+		// -------- création une location------------
+		UUID idLocation = UUID.randomUUID();
+		System.out.println("id : "+idLocation);
+		
+		//on recherche l'id du vélo
+		String sqlVelo ="Select id_velo from bornette where id_bornette ='"+ idBornetteChoisit+"'";
+		PreparedStatement prepareVelo = connection.prepareStatement(sqlVelo);
+		ResultSet resultVelo = prepareVelo.executeQuery();
+		
+		if(! resultVelo.next()){
+			System.out.println("Erreur sur le vélo");
+		}
+		else
+		{
+			String idVelo = resultVelo.getString("id_velo");
+			String sqlInsertLocation ="insert into Location values('"+idLocation.toString()+"','"+idCLient+"',to_char( sysdate , 'YYYY' ),'"+idVelo+"','"+idBornetteChoisit+"',null,sysdate,null)";
+			System.out.println("requete : " +sqlInsertLocation);
+			PreparedStatement prepareInsertLocation = connection.prepareStatement(sqlInsertLocation);
+			
+			prepareInsertLocation.executeUpdate();
+			
+			// -------- FIN création une location------------
+			
+			//-------Suppresion  velo de la bornette-----------
+			String sqlSupprVeloBornette = "update Bornette set id_velo=null where id_velo='"+idVelo +"' and id_bornette='"+idBornetteChoisit +"'" ;
+			System.out.println("requete : " +sqlSupprVeloBornette);
+			PreparedStatement prepareSupprVeloBornette = connection.prepareStatement(sqlSupprVeloBornette);
+			prepareSupprVeloBornette.executeUpdate();
+			
+			//-------Fin supprime le velo de la bornette-----------
+			
+		}
+		
+		
+		connection.commit();
+		connection.setAutoCommit(true);
+		
 	}
 	
 }
