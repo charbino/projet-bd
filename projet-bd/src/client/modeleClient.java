@@ -56,7 +56,7 @@ public class modeleClient {
 	public static boolean abonnementExiste(String codeSecret) throws SQLException {
 		
 
-		String sql="Select count(*) from abonne where code_secret='"+codeSecret+"'";
+		String sql="Select * from abonne where code_secret='"+codeSecret+"'";
 		
 		//System.out.println("INFO : requete : "+ sql);
 		
@@ -69,6 +69,22 @@ public class modeleClient {
 		
 
 	}
+	
+	public static Boolean nonAbonneExiste(String codeSecretNonAbonne) throws SQLException {
+
+		
+		String sql="Select * from nonabonne where codeSecretNonAbonne='"+codeSecretNonAbonne+"'";
+		
+		//System.out.println("INFO : requete : "+ sql);
+		
+		Connection connection = DbConnection.getInstance();
+		PreparedStatement prepare = connection.prepareStatement(sql);
+		
+		ResultSet result = prepare.executeQuery();
+	
+		return result.next();
+	}
+	
 
 	//verifie que le client possède un abonnement valide
 	//pre-requis : l'abonnement existe déja
@@ -89,7 +105,7 @@ public class modeleClient {
 	public static boolean codeSecretNonAbonneUnique(int codeSecret) throws SQLException {
 		
 
-		String sql ="select count(*) from nonAbonne where code_secret_non_abonne="+codeSecret;
+		String sql ="select * from nonAbonne where code_secret_non_abonne="+codeSecret;
 		
 		//System.out.println("INFO : requete : "+ sql);
 		
@@ -108,6 +124,7 @@ public class modeleClient {
 		//on insere dans la table client 
 		UUID idUniqueClient = UUID.randomUUID();
 		System.out.println("id : "+idUniqueClient);
+		
 		
 		//--------début de la transaction--------------------------
 		connection.setAutoCommit(false);
@@ -171,11 +188,13 @@ public class modeleClient {
 			
 			//-------Suppresion  velo de la bornette-----------
 			String sqlSupprVeloBornette = "update Bornette set id_velo=null where id_velo='"+idVelo +"' and id_bornette='"+idBornetteChoisit +"'" ;
-			//System.out.println("INFO : requete : " +sqlSupprVeloBornette);
+			System.out.println("INFO : requete : " +sqlSupprVeloBornette);
 			PreparedStatement prepareSupprVeloBornette = connection.prepareStatement(sqlSupprVeloBornette);
 			prepareSupprVeloBornette.executeUpdate();
 			
 			//-------Fin supprime le velo de la bornette-----------
+			
+			prepareInsertLocation.close();
 			
 		}
 		
@@ -185,9 +204,27 @@ public class modeleClient {
 		
 	}
 
-	public static String chercherCLient(String numAbonne) throws SQLException {
-		// permet de chercher un client avec le numAbonne
+	public static String chercherCLientAbonne(String numAbonne) throws SQLException {
+		// permet de chercher un client avec le code Secret
 		String sql = "select id_client from abonne where code_secret='"+numAbonne+"'";
+		
+		Connection connection = DbConnection.getInstance();
+		PreparedStatement prepare = connection.prepareStatement(sql);
+		
+		ResultSet result = prepare.executeQuery();
+		
+		result.next();
+		String idClient = result.getString("id_client");
+		
+		
+		result.close();
+		
+		return idClient;
+	}
+	
+	public static String chercherCLientNonAbonne(String codeSecretNonAbonne) throws SQLException {
+		// permet de chercher un client avec le code Secret
+		String sql = "select id_client from nonabonne where code_secret_non_abonne='"+codeSecretNonAbonne+"'";
 		
 		Connection connection = DbConnection.getInstance();
 		PreparedStatement prepare = connection.prepareStatement(sql);
@@ -200,9 +237,86 @@ public class modeleClient {
 		
 		return idClient;
 	}
-	
-	public void mafonctiondetest(){
+
+	public static String retrouverLocation(String idClient) throws SQLException {
+		String sql = "select id_location from location where id_Client='"+idClient+"' and DATE_HEURE_FIN_LOCATION is null";
 		
+		System.out.println("INFO : requete : "+sql);
+		
+		Connection connection = DbConnection.getInstance();
+		PreparedStatement prepare = connection.prepareStatement(sql);
+		
+		ResultSet result = prepare.executeQuery();
+		String idLocation="null";
+		
+		if (result.next()){
+			 idLocation = result.getString("id_location");
+		}
+		
+		result.close();
+		
+		return idLocation;
 	}
+
+	public static boolean placeDispoStation(String adresseStation) throws SQLException {
+		
+		String sql="select * "
+				+  "from Bornette "
+				+  "where adresse_station='"+adresseStation+"' "
+				+  "and id_Velo is null and etat_bornette='OK'";
+		
+		System.out.println("INFO : Requete"+ sql);
+		
+		Connection connection = DbConnection.getInstance();
+		PreparedStatement prepare = connection.prepareStatement(sql);
+		
+		ResultSet result = prepare.executeQuery();
+		
+		return result.next();
+	}
+
+	public static void rendreVelo(String idBornette, String idClient,
+			String idLocation) throws SQLException {
+		
+		Connection connection = DbConnection.getInstance();
+		
+		String idVelo;
+		//on recherche l'idVélo
+		String sqlIdVelo = "Select id_velo from location where id_location = '"+idLocation+"'";
+		System.out.println("INFO : requete : "+ sqlIdVelo);
+		
+		PreparedStatement prepareIdVelo = connection.prepareStatement(sqlIdVelo);
+		
+		ResultSet resultIdVelo = prepareIdVelo.executeQuery();
+		
+		resultIdVelo.next();
+		idVelo = resultIdVelo.getString("id_velo");
+		
+
+		String sqlVeloBornette="update Bornette set id_velo='"+idVelo+"' where id_bornette='"+idBornette +"'";
+		String sqlLocation="update location set idLocation=sysdate where id_location='"+idLocation +"'";
+		
+		System.out.println("INFO : requete : "+ sqlVeloBornette);
+		System.out.println("INFO : requete : "+ sqlLocation);
+		
+		//-----On attache un Vélo à bornette------------
+		PreparedStatement prepareVeloBornette = connection.prepareStatement(sqlVeloBornette);
+		
+		prepareIdVelo.executeUpdate(sqlVeloBornette);
+		
+		//-----On insert dans location une date de fin-----------
+		PreparedStatement prepareLocation = connection.prepareStatement(sqlLocation);
+		
+		prepareLocation.executeUpdate(sqlLocation);
+		
+		
+		prepareIdVelo.close();
+		prepareLocation.close();
+	}
+	
+
+
+
+
 	
 }

@@ -80,8 +80,6 @@ public class IhmCLient {
 				this.choixMenu();
 			}		
 		}
-
-		
 		
 		String adresseStation = systemeChoisirAdresseStation();
 		
@@ -119,7 +117,7 @@ public class IhmCLient {
 				
 				if(isAbonne){
 					
-					idCLient = modeleClient.chercherCLient(numAbonne);
+					idCLient = modeleClient.chercherCLientAbonne(numAbonne);
 				}else{
 					//si il n'est pas abboné on l'ajoute dans la base
 					//1 on genere un code secret client
@@ -129,7 +127,7 @@ public class IhmCLient {
 					int nombreAleatoireCodeSecretNonAbonne = Min + (int)(Math.random() * ((Max - Min) + 1));
 				
 					//verifie que ce code n'exsite déja pas 
-					if( ! modeleClient.codeSecretNonAbonneUnique(nombreAleatoireCodeSecretNonAbonne) ){
+					if( !modeleClient.codeSecretNonAbonneUnique(nombreAleatoireCodeSecretNonAbonne) ){
 						System.out.println("Erreur L'ID n'est pas unique");
 					}
 
@@ -177,7 +175,7 @@ public class IhmCLient {
 	//verifie que l'abonné est bien dans la bd
 	private String verifierAbonne() {
 
-		System.out.println("Votre numéro abonné :");
+		System.out.println("Votre code secret abonné :");
 		Scanner scNumAb = new Scanner(System.in);
 		String numAB;
 		Boolean abonnementValide=false;
@@ -194,12 +192,10 @@ public class IhmCLient {
 					System.out.println("Abonnement valide");
 					abonnementValide=true;
 					
-					
 				}
 				else{
 					System.out.println("Erreur l'abonnement n'est plus valide, veuillez le renouveller");
 					abonnementValide=false;
-					
 				}
 			}
 			else{
@@ -221,14 +217,138 @@ public class IhmCLient {
 	
 	private void rendreVelo() {
 		
-		//le systeme demande l'adresse de la station et l'id du vélo à rendre
+		//le systeme demande l'adresse de la station
 		String adresseStation = systemeChoisirAdresseStation();
+		
+		//on verifie qu'il y a de la place dans la station choisit
+		try {
+			if(!modeleClient.placeDispoStation(adresseStation)){
+				
+				System.out.println("Il n'y a pas de place disponible");
+				this.choixMenu();
+				
+			}
+			
+		} catch (SQLException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
+		String idClient = null;
 		
 		//on demande si c'est un abonné ou un client normal
 		Boolean isAbonne = demandeTypeClient();
-		
-		String idVeloRendu = systemeChoisirVelo();
+		if (isAbonne) {
+
+					
+			//on recumère l'id du client abonné
+			try {
+				String codeSecretAbonne;
+				Scanner scNumAb;
+				Boolean isTrue = false;
+				do {
+					//on lui demande son codeSecret
+					System.out.println("Votre code Secret abonné (ou tapez q pour quitter) :");
+					scNumAb = new Scanner(System.in);
+					codeSecretAbonne = scNumAb.nextLine();
+					
+					if(codeSecretAbonne.equals("q")){
+						this.choixMenu();
+					}
+					else{
+						isTrue = modeleClient.abonnementExiste(codeSecretAbonne);
+						if (!isTrue){
+							System.out.println("Le code saisit n'est pas valide veuillez recommencer");
+						}
+					}
+					
+				} while (!isTrue);
+					
+				//on recupère l'id du client
+					idClient= modeleClient.chercherCLientAbonne(codeSecretAbonne);
+				
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+		}
+		else{
+			//on demande le codeSecret
+			String codeSecretNonAbonne;
+			Scanner scNumNonAb;
+			Boolean isTrue = false;
+			
+			do {
+				//on lui demande son codeSecret
+				System.out.println("Votre code de location (ou tapez q pour quitter) :");
+				scNumNonAb = new Scanner(System.in);
+				codeSecretNonAbonne = scNumNonAb.nextLine();
+				
+				if(codeSecretNonAbonne.equals("q")){
+					this.choixMenu();
+				}
+				else{
+					try {
+						isTrue = modeleClient.nonAbonneExiste(codeSecretNonAbonne);
+						if (!isTrue){
+							System.out.println("Le code saisit n'est pas valide veuillez recommencer");
+						}
+					} catch (SQLException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+				
+			} while (isTrue);
+			
+			//on recupère l'id du client non abonné
+			try {
+				idClient = modeleClient.chercherCLientNonAbonne(codeSecretNonAbonne);
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 	
+		//--------On retrouve la location
+		try {
+			String idLocation = modeleClient.retrouverLocation(idClient);
+			
+			if(idLocation.equals("null")){
+				System.out.println("Erreur la location n'a pas été retrouvé ");
+				System.out.println("Warning : L'application redemarre");
+				this.choixMenu();
+			}
+			
+			//on lui impose une borne et rend le vélo
+			HashMap borneDispo = new HashMap();
+			borneDispo = modeleClient.getVeloLibreStation(adresseStation);
+		
+			
+			int nombreVeloDisonible = borneDispo.size();
+			
+			if (nombreVeloDisonible==0){
+				System.out.println("Erreur : Il n'y a pas de vélo disponible");
+				
+			}else{
+				System.out.println("Metter le vélo sur la borne : "+borneDispo.get(1).toString() );
+				System.out.println("Votre Vélo à bien été rendu");
+				modeleClient.rendreVelo(borneDispo.get(1).toString(),idClient,idLocation);
+			}
+			
+			
+			
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
+		
+		
+		
 		
 	}
 
@@ -267,6 +387,6 @@ public class IhmCLient {
 		}
 		while(choixAB!=1 && choixAB!=2);
 
-		return (choixAB ==1);
+		return (choixAB == 1);
 	}
 }
