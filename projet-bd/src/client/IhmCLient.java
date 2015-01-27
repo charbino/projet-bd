@@ -68,9 +68,9 @@ public class IhmCLient {
 		int choixAB;
 		String numAbonne = null;
 		
-		choixAB = demandeTypeClient();
+		isAbonne = demandeTypeClient();
 		
-		if(choixAB==1){
+		if(isAbonne){
 			isAbonne= true;
 			
 			//verification des identifiants
@@ -78,13 +78,9 @@ public class IhmCLient {
 			if (numAbonne.equals("X-X")){
 				System.out.println("Erreur sur l'abonné");
 				this.choixMenu();
-			}
-			
+			}		
 		}
-		else if(choixAB==2){
-			isAbonne= false;
-			
-		}
+
 		
 		
 		String adresseStation = systemeChoisirAdresseStation();
@@ -229,10 +225,10 @@ public class IhmCLient {
 		String adresseStation = systemeChoisirAdresseStation();
 		
 		//on demande si c'est un abonné ou un client normal
-		
+		Boolean isAbonne = demandeTypeClient();
 		
 		String idVeloRendu = systemeChoisirVelo();
-		
+	
 		
 	}
 
@@ -243,6 +239,7 @@ public class IhmCLient {
 		System.out.println("System : adresse de la station ? ");
 		String idVelo = sc.nextLine();
 		System.out.println("+-------------------------------+");
+		
 		return idVelo;
 	}
 	
@@ -253,10 +250,12 @@ public class IhmCLient {
 		System.out.println("System : adresse de la station ? ");
 		String adresseStation = sc.nextLine();
 		System.out.println("+-------------------------------+");
+		
 		return adresseStation;
 	}
 	
-	private int demandeTypeClient() {
+	private Boolean demandeTypeClient() {
+		//true si abonne
 		Scanner scAb = new Scanner(System.in);
 		int choixAB;
 		System.out.println("Etes-vous abonné ? ");
@@ -267,6 +266,7 @@ public class IhmCLient {
 			choixAB = scAb.nextInt();
 		}
 		while(choixAB!=1 && choixAB!=2);
-		return choixAB;
+
+		return (choixAB ==1);
 	}
 }
