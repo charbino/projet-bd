@@ -49,6 +49,7 @@ public class IhmCLient {
 			
 			break;
 		case 3:
+			rendreVelo();
 			
 			break;
 		default: 
@@ -58,24 +59,16 @@ public class IhmCLient {
 		
 	}
 
+
 	private void louerUnVelo() {
 		
 		Boolean isAbonne= false;
 		
 		//Abonné ? non Abonné ? 
-		Scanner scAb = new Scanner(System.in);
 		int choixAB;
 		String numAbonne = null;
 		
-		System.out.println("Etes-vous abonné ? ");
-		do{
-			
-			System.out.println("1- Oui");
-			System.out.println("2- Non");
-			choixAB = scAb.nextInt();
-		}
-		while(choixAB!=1 && choixAB!=2);
-		
+		choixAB = demandeTypeClient();
 		
 		if(choixAB==1){
 			isAbonne= true;
@@ -94,12 +87,7 @@ public class IhmCLient {
 		}
 		
 		
-		//on recupère les bornes disponible
-		Scanner sc = new Scanner(System.in);
-		System.out.println("+-------------------------------+");
-		System.out.println("System : adresse de la station ? ");
-		String adresseStation = sc.nextLine();
-		System.out.println("+-------------------------------+");
+		String adresseStation = systemeChoisirAdresseStation();
 		
 		//on affiche les bornes disponibles (= vélo disponible)
 		try {
@@ -118,7 +106,6 @@ public class IhmCLient {
 				for(int i = 1; i <= nombreVeloDisonible; ++i){
 					System.out.println(i+"- "+ borneDispo.get(i));
 				}	
-				
 				
 				//choix du vélo disponible
 				
@@ -189,11 +176,7 @@ public class IhmCLient {
 			e.printStackTrace();
 		}
 		
-		
-		
 	}
-	
-
 
 	//verifie que l'abonné est bien dans la bd
 	private String verifierAbonne() {
@@ -237,7 +220,53 @@ public class IhmCLient {
 		}
 		
 		return numAB;
-		
 
+	}
+	
+	private void rendreVelo() {
+		
+		//le systeme demande l'adresse de la station et l'id du vélo à rendre
+		String adresseStation = systemeChoisirAdresseStation();
+		
+		//on demande si c'est un abonné ou un client normal
+		
+		
+		String idVeloRendu = systemeChoisirVelo();
+		
+		
+	}
+
+	private String systemeChoisirVelo() {
+		//on recupère les bornes disponible
+		Scanner sc = new Scanner(System.in);
+		System.out.println("+-------------------------------+");
+		System.out.println("System : adresse de la station ? ");
+		String idVelo = sc.nextLine();
+		System.out.println("+-------------------------------+");
+		return idVelo;
+	}
+	
+	private String systemeChoisirAdresseStation() {
+		//on recupère les bornes disponible
+		Scanner sc = new Scanner(System.in);
+		System.out.println("+-------------------------------+");
+		System.out.println("System : adresse de la station ? ");
+		String adresseStation = sc.nextLine();
+		System.out.println("+-------------------------------+");
+		return adresseStation;
+	}
+	
+	private int demandeTypeClient() {
+		Scanner scAb = new Scanner(System.in);
+		int choixAB;
+		System.out.println("Etes-vous abonné ? ");
+		do{
+			
+			System.out.println("1- Oui");
+			System.out.println("2- Non");
+			choixAB = scAb.nextInt();
+		}
+		while(choixAB!=1 && choixAB!=2);
+		return choixAB;
 	}
 }

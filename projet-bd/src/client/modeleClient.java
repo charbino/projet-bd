@@ -56,7 +56,6 @@ public class modeleClient {
 	public static boolean abonnementExiste(String codeSecret) throws SQLException {
 		
 
-		
 		String sql="Select count(*) from abonne where code_secret='"+codeSecret+"'";
 		
 		//System.out.println("INFO : requete : "+ sql);
