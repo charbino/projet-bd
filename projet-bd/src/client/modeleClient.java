@@ -279,7 +279,7 @@ public class modeleClient {
 			String idLocation) throws SQLException {
 		
 		Connection connection = DbConnection.getInstance();
-		
+		connection.setAutoCommit(false);
 		String idVelo;
 		//on recherche l'idVélo
 		String sqlIdVelo = "Select id_velo from location where id_location = '"+idLocation+"'";
@@ -294,7 +294,7 @@ public class modeleClient {
 		
 
 		String sqlVeloBornette="update Bornette set id_velo='"+idVelo+"' where id_bornette='"+idBornette +"'";
-		String sqlLocation="update location set idLocation=sysdate where id_location='"+idLocation +"'";
+		String sqlLocation="update location set DATE_HEURE_FIN_LOCATION=sysdate,ID_BORNETTE_FIN='"+idBornette+"' where id_location='"+idLocation +"'";
 		
 		System.out.println("INFO : requete : "+ sqlVeloBornette);
 		System.out.println("INFO : requete : "+ sqlLocation);
@@ -309,6 +309,9 @@ public class modeleClient {
 		
 		prepareLocation.executeUpdate(sqlLocation);
 		
+		
+		connection.commit();
+		connection.setAutoCommit(true);
 		
 		prepareIdVelo.close();
 		prepareLocation.close();

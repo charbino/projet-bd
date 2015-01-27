@@ -323,6 +323,8 @@ public class IhmCLient {
 			
 			//on lui impose une borne et rend le vélo
 			HashMap borneDispo = new HashMap();
+			
+			//---------attention mauvaise fonction----------------
 			borneDispo = modeleClient.getVeloLibreStation(adresseStation);
 		
 			
