@@ -3,9 +3,11 @@ package client;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.util.ArrayList;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -73,9 +75,9 @@ public class modeleClient {
 	public static Boolean nonAbonneExiste(String codeSecretNonAbonne) throws SQLException {
 
 		
-		String sql="Select * from nonabonne where codeSecretNonAbonne='"+codeSecretNonAbonne+"'";
+		String sql="Select * from nonabonne where CODE_SECRET_NON_ABONNE='"+codeSecretNonAbonne+"'";
 		
-		//System.out.println("INFO : requete : "+ sql);
+		System.out.println("INFO : requete : "+ sql);
 		
 		Connection connection = DbConnection.getInstance();
 		PreparedStatement prepare = connection.prepareStatement(sql);
@@ -114,7 +116,7 @@ public class modeleClient {
 		
 		ResultSet result = prepare.executeQuery();
 		
-		return result.next();
+		return !result.next();
 	}
 
 	public static String insererNonAbonne(int codeSecretNonAbonne, int cBClient) throws SQLException {
@@ -123,7 +125,7 @@ public class modeleClient {
 		
 		//on insere dans la table client 
 		UUID idUniqueClient = UUID.randomUUID();
-		System.out.println("id : "+idUniqueClient);
+		//System.out.println("id : "+idUniqueClient);
 		
 		
 		//--------début de la transaction--------------------------
@@ -241,7 +243,7 @@ public class modeleClient {
 	public static String retrouverLocation(String idClient) throws SQLException {
 		String sql = "select id_location from location where id_Client='"+idClient+"' and DATE_HEURE_FIN_LOCATION is null";
 		
-		System.out.println("INFO : requete : "+sql);
+		//System.out.println("INFO : requete : "+sql);
 		
 		Connection connection = DbConnection.getInstance();
 		PreparedStatement prepare = connection.prepareStatement(sql);
@@ -265,7 +267,7 @@ public class modeleClient {
 				+  "where adresse_station='"+adresseStation+"' "
 				+  "and id_Velo is null and etat_bornette='OK'";
 		
-		System.out.println("INFO : Requete"+ sql);
+		//System.out.println("INFO : Requete"+ sql);
 		
 		Connection connection = DbConnection.getInstance();
 		PreparedStatement prepare = connection.prepareStatement(sql);
@@ -276,14 +278,15 @@ public class modeleClient {
 	}
 
 	public static void rendreVelo(String idBornette, String idClient,
-			String idLocation) throws SQLException {
+			String idLocation, Boolean isAbonne) throws SQLException {
 		
 		Connection connection = DbConnection.getInstance();
 		connection.setAutoCommit(false);
 		String idVelo;
+		
 		//on recherche l'idVélo
 		String sqlIdVelo = "Select id_velo from location where id_location = '"+idLocation+"'";
-		System.out.println("INFO : requete : "+ sqlIdVelo);
+		//System.out.println("INFO : requete : "+ sqlIdVelo);
 		
 		PreparedStatement prepareIdVelo = connection.prepareStatement(sqlIdVelo);
 		
@@ -296,8 +299,8 @@ public class modeleClient {
 		String sqlVeloBornette="update Bornette set id_velo='"+idVelo+"' where id_bornette='"+idBornette +"'";
 		String sqlLocation="update location set DATE_HEURE_FIN_LOCATION=sysdate,ID_BORNETTE_FIN='"+idBornette+"' where id_location='"+idLocation +"'";
 		
-		System.out.println("INFO : requete : "+ sqlVeloBornette);
-		System.out.println("INFO : requete : "+ sqlLocation);
+		//System.out.println("INFO : requete : "+ sqlVeloBornette);
+		//System.out.println("INFO : requete : "+ sqlLocation);
 		
 		//-----On attache un Vélo à bornette------------
 		PreparedStatement prepareVeloBornette = connection.prepareStatement(sqlVeloBornette);
@@ -310,16 +313,174 @@ public class modeleClient {
 		prepareLocation.executeUpdate(sqlLocation);
 		
 		
+		//si il n'est pas abonné on le supprime de la base
+		if (!isAbonne){
+			String sqlSupprNonAbonne="delete from nonAbonne where id_client ='"+idClient+"'";
+			PreparedStatement prepareSupprClient = connection.prepareStatement(sqlSupprNonAbonne);	
+			
+			prepareSupprClient.executeUpdate();
+		}
+		
+		
 		connection.commit();
 		connection.setAutoCommit(true);
 		
 		prepareIdVelo.close();
 		prepareLocation.close();
 	}
+
+	public static String getPremiereBorneDispo(String adresseStation) throws SQLException {
+		// Renvoie l'id de la première borne dispo
+		
+		String sql = "select id_bornette from Bornette where adresse_station='"+adresseStation+"' and id_Velo is null and etat_bornette='OK'";
+		
+		System.out.println("INFO : Requete : "+sql);
+		
+		Connection connection = DbConnection.getInstance();
+		PreparedStatement prepare = connection.prepareStatement(sql);
+		
+		ResultSet result = prepare.executeQuery();
+		
+		String idBornette;
+		
+		if (result.next()){
+			
+			idBornette= result.getString("id_bornette");
+			
+		}
+		else{
+			idBornette = null;
+		}
+		
+		
+		return idBornette;
+	}
 	
+	public static void creerReservation(String idResa, String numAbonne,String adresseStation, Date today, String dateDebutReservation,	String dateFinReservation, String jour_Choisi) throws SQLException {
+		Connection connection = DbConnection.getInstance();
+		connection.setAutoCommit(false);
+		String sqlInsertReservation ="insert into Reservation values('"+idResa+"','"+numAbonne+"','"+adresseStation+"',sysdate,to_date( '"+dateDebutReservation+"' , 'yyyy/mm/dd' ),to_date( '"+dateFinReservation+"' , 'yyyy/mm/dd' ),'"+jour_Choisi+"')";
+		System.out.println("INFO : requete : " +sqlInsertReservation);
+		PreparedStatement prepareInsertReservation = connection.prepareStatement(sqlInsertReservation);
+		prepareInsertReservation.executeUpdate();
+		connection.commit();
+		connection.setAutoCommit(true);
+	}
+
+	 //Fonction qui permet de renouveler un abonnement
+    public static void renouvelerAbonnement(String codeSecret) throws SQLException{
+
+
+        String sql1="update abonne set DATE_DEBUT_ABONNEMENT = add_months(DATE_DEBUT_ABONNEMENT,12)where code_secret='"+codeSecret+"'";
+
+        String sql="Select DATE_DEBUT_ABONNEMENT from abonne where code_secret='"+codeSecret+"'";
+        Connection connection = DbConnection.getInstance();
+        PreparedStatement prepare = connection.prepareStatement(sql);
+        PreparedStatement prepare1 = connection.prepareStatement(sql1);
+
+        ResultSet result = prepare.executeQuery();
+        ResultSet result1 = prepare1.executeQuery();
+
+
+        result.next();
+    
+    //System.out.println(result.getDate("DATE_DEBUT_ABONNEMENT"));
+
+    }
 
 
 
 
-	
+
+
+
+    //Inserer un nouveau Client
+    public static String  nouveauClient(String id_Client, String id_remise) throws SQLException{
+
+        String sql ="insert into client values ('"+id_Client+"','"+id_remise+"')";
+
+
+        Connection connection = DbConnection.getInstance();
+        PreparedStatement prepare = connection.prepareStatement(sql);
+
+
+        prepare.executeUpdate();
+
+        return id_Client;
+
+    }
+
+    //Fonction qui permet d'inserer un nouveau abonne
+    public static void  nouveauAbonne(    String CODE_SECRET ,String ID_CLIENT, String NOM_CLIENT ,
+            String PRENOM_CLIENT ,String  DATE_NAISSANCE , String SEXE_CLIENT ,
+            String ADRESSE_CLIENT,int CB_CLIENT ,
+            String DATE_DEBUT_ABONNEMENT ) throws SQLException{
+
+        String sql ="insert into abonne values ('"+CODE_SECRET+"','"+ID_CLIENT+"','"+NOM_CLIENT+"','"+PRENOM_CLIENT+"','"+DATE_NAISSANCE+"','"+SEXE_CLIENT+"','"+ADRESSE_CLIENT+"','"+CB_CLIENT+"','"+DATE_DEBUT_ABONNEMENT+"')";
+
+
+        Connection connection = DbConnection.getInstance();
+        PreparedStatement prepare = connection.prepareStatement(sql);
+
+
+        prepare.executeUpdate();
+
+
+
+    }
+
+
+    //Retourne la date actuelle
+    public static String  dateActuelle(){
+        Date actuelle = new Date();
+        DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+        String dat = dateFormat.format(actuelle);
+
+
+        return dat;
+    }
+
+    
+    
+    //Fonction qui permet de retouner une valeure booleene pour tester si le renouvelemnt d abonnement est superieur à 11 mois
+    public static Boolean  dateAbonnement(String codeSecret) throws SQLException{
+
+        String sql="Select DATE_DEBUT_ABONNEMENT from abonne where code_secret='"+codeSecret+"'";
+
+
+        Connection connection = DbConnection.getInstance();
+        PreparedStatement prepare = connection.prepareStatement(sql);
+
+        ResultSet result = prepare.executeQuery();
+
+        result.next();
+        
+        Calendar cal = Calendar.getInstance();
+        
+        Date d=new Date();
+
+        cal.setTime(result.getDate("DATE_DEBUT_ABONNEMENT"));
+        cal.add(cal.HOUR_OF_DAY, 8030);//date de debut d'abonnement +11 mois
+        System.out.println(cal.getTime());
+        if (d.compareTo(cal.getTime()) == -1) { //si inferieur a 11 mois
+
+            return false;
+        }
+        else if(d.compareTo(cal.getTime()) == 1) {// si superieur a 11 mois
+            return true;
+            
+        }
+    
+            return true;
+        
+
+    }
+
+ 
+
+
 }
+
+
+
+

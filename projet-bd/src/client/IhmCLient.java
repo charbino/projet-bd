@@ -5,6 +5,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Scanner;
+import java.util.UUID;
 
 //Class qui gère l'ihm du client 
 public class IhmCLient {
@@ -28,6 +29,7 @@ public class IhmCLient {
 		System.out.println("1-- Louer un Vélo");
 		System.out.println("2-- S'abonner");
 		System.out.println("3-- Rendre un vélo");
+		System.out.println("4-- Réserver un vélo");
 		System.out.println();
 		System.out.println("100-- Quitter");
 		
@@ -46,10 +48,14 @@ public class IhmCLient {
 			louerUnVelo();
 			break;
 		case 2:
-			
+			 abonner();
 			break;
 		case 3:
 			rendreVelo();
+			
+			break;
+		case 4:
+			reserverUnVelo();
 			
 			break;
 		default: 
@@ -77,7 +83,6 @@ public class IhmCLient {
 			numAbonne = verifierAbonne();
 			if (numAbonne.equals("X-X")){
 				System.out.println("Erreur sur l'abonné");
-				this.choixMenu();
 			}		
 		}
 		
@@ -119,17 +124,25 @@ public class IhmCLient {
 					
 					idCLient = modeleClient.chercherCLientAbonne(numAbonne);
 				}else{
-					//si il n'est pas abboné on l'ajoute dans la base
-					//1 on genere un code secret client
-					int Min = 10000000;
-					int Max = 99999999;
+					boolean idUnique ;
+					int nombreAleatoireCodeSecretNonAbonne;
+					do{
+						idUnique=true;
+						
+						//si il n'est pas abboné on l'ajoute dans la base
+						//1 on genere un code secret client
+						int Min = 10000000;
+						int Max = 99999999;
+						
+						nombreAleatoireCodeSecretNonAbonne = Min + (int)(Math.random() * ((Max - Min) + 1));
 					
-					int nombreAleatoireCodeSecretNonAbonne = Min + (int)(Math.random() * ((Max - Min) + 1));
-				
-					//verifie que ce code n'exsite déja pas 
-					if( !modeleClient.codeSecretNonAbonneUnique(nombreAleatoireCodeSecretNonAbonne) ){
-						System.out.println("Erreur L'ID n'est pas unique");
-					}
+						//verifie que ce code n'exsite déja pas 
+						boolean codeSecretNonAbonneUnique = modeleClient.codeSecretNonAbonneUnique(nombreAleatoireCodeSecretNonAbonne);
+						if( !codeSecretNonAbonneUnique){
+							System.out.println("Erreur L'ID n'est pas unique");
+							idUnique=false;
+						}
+					}while(!idUnique);
 
 					
 					//2 on 	L'insert
@@ -139,7 +152,7 @@ public class IhmCLient {
 					int CBClient = scCBCLient.nextInt();
 					System.out.println("+-------------------------------+");
 					
-					 idCLient = modeleClient.insererNonAbonne(nombreAleatoireCodeSecretNonAbonne,CBClient);
+					idCLient = modeleClient.insererNonAbonne(nombreAleatoireCodeSecretNonAbonne,CBClient);
 					
 					System.out.println("------------------------------------------");
 					System.out.println("Voici vote code secret : "+nombreAleatoireCodeSecretNonAbonne);
@@ -225,7 +238,6 @@ public class IhmCLient {
 			if(!modeleClient.placeDispoStation(adresseStation)){
 				
 				System.out.println("Il n'y a pas de place disponible");
-				this.choixMenu();
 				
 			}
 			
@@ -253,7 +265,7 @@ public class IhmCLient {
 					codeSecretAbonne = scNumAb.nextLine();
 					
 					if(codeSecretAbonne.equals("q")){
-						this.choixMenu();
+						//this.choixMenu();
 					}
 					else{
 						isTrue = modeleClient.abonnementExiste(codeSecretAbonne);
@@ -286,7 +298,7 @@ public class IhmCLient {
 				codeSecretNonAbonne = scNumNonAb.nextLine();
 				
 				if(codeSecretNonAbonne.equals("q")){
-					this.choixMenu();
+					//this.choixMenu();
 				}
 				else{
 					try {
@@ -300,7 +312,7 @@ public class IhmCLient {
 					}
 				}
 				
-			} while (isTrue);
+			} while (!isTrue);
 			
 			//on recupère l'id du client non abonné
 			try {
@@ -318,25 +330,27 @@ public class IhmCLient {
 			if(idLocation.equals("null")){
 				System.out.println("Erreur la location n'a pas été retrouvé ");
 				System.out.println("Warning : L'application redemarre");
-				this.choixMenu();
+				//this.choixMenu();
 			}
 			
 			//on lui impose une borne et rend le vélo
-			HashMap borneDispo = new HashMap();
+			String idBorneDispo;
 			
-			//---------attention mauvaise fonction----------------
-			borneDispo = modeleClient.getVeloLibreStation(adresseStation);
+			idBorneDispo = modeleClient.getPremiereBorneDispo(adresseStation);
 		
 			
-			int nombreVeloDisonible = borneDispo.size();
-			
-			if (nombreVeloDisonible==0){
+			if (idBorneDispo==null){
 				System.out.println("Erreur : Il n'y a pas de vélo disponible");
 				
 			}else{
-				System.out.println("Metter le vélo sur la borne : "+borneDispo.get(1).toString() );
+				System.out.println("Metter le vélo sur la borne : "+idBorneDispo);
 				System.out.println("Votre Vélo à bien été rendu");
-				modeleClient.rendreVelo(borneDispo.get(1).toString(),idClient,idLocation);
+				
+				//---RAF : Il faut calculer combien coute la location
+				
+				modeleClient.rendreVelo(idBorneDispo,idClient,idLocation,isAbonne);
+				
+				
 			}
 			
 			
@@ -347,23 +361,211 @@ public class IhmCLient {
 			e.printStackTrace();
 		}
 		
-		
-		
-		
-		
-		
 	}
+	
+	private void reserverUnVelo() {
+		
+		Boolean isAbonne= false;
+		
+		//Abonné ? non Abonné ? 		
+		String numAbonne = null;
 
-	private String systemeChoisirVelo() {
-		//on recupère les bornes disponible
-		Scanner sc = new Scanner(System.in);
-		System.out.println("+-------------------------------+");
-		System.out.println("System : adresse de la station ? ");
-		String idVelo = sc.nextLine();
-		System.out.println("+-------------------------------+");
+			
+			//verification des identifiants
+			numAbonne = verifierAbonne();
+			if (numAbonne.equals("X-X")){
+				System.out.println("Erreur sur l'abonné");
+				this.choixMenu();
+			}		
+
+
 		
-		return idVelo;
+			
+		try {
+
+
+				Calendar cal = Calendar.getInstance();
+				cal.setTime(new Date()); 
+				Date today = cal.getTime();
+				// A SUPPRIMER cal.add(Calendar.HOUR_OF_DAY, 0);
+			
+			
+
+		
+				//choix du vélo disponible
+				
+				Scanner scannerChoix = new Scanner(System.in);
+				String dateDebutReservation;
+				String dateFinReservation;
+				String rep_jour_Choisi;
+				String jour_Choisi="Tous_les_jours";
+				System.out.println("Veuillez tapez la date de debut de réservation au format aaaa/mm/jj");
+
+				dateDebutReservation = scannerChoix.nextLine();
+				System.out.println("Veuillez tapez la date de fin de réservation au format aaaa/mm/jj");
+				dateFinReservation= scannerChoix.nextLine();
+				System.out.println("Choisir le jour de la semaine où effectuer la réservation");
+				System.out.println("L--:Lundi \n Ma--Mardi \n Me--Mercredi \n J--Jeudi \n V--Vendredi \n S--Samedi \n D--Dimanche \n T-- Tous_les_jours");
+				rep_jour_Choisi = 	scannerChoix.nextLine();
+				switch(rep_jour_Choisi){
+				case "L":
+					jour_Choisi="Lundi";
+					break;
+				case "Ma":
+					jour_Choisi="Mardi";
+					break;
+				case "Me":
+					jour_Choisi="Mercredi";			
+					break;
+				case "J":
+					jour_Choisi="Jeudi";
+				break;
+				case "V":
+					jour_Choisi="Vendredi";
+				break;
+				case "S":
+					jour_Choisi="Samedi";
+				break;
+				case "D":
+					jour_Choisi="Dimanche";
+				break;
+				case "T":
+					jour_Choisi="Tous_les_jours";
+				break;
+				default: 
+					System.out.println("Choix impossible veuillez recommencer");
+					jour_Choisi = 	scannerChoix.nextLine();
+				}
+				
+				String adresseStation = systemeChoisirAdresseStation();
+				UUID idResarandom = UUID.randomUUID();
+				String idResa = idResarandom.toString();
+				//on ajoute la location et on supprime le vélo dans bornette
+				modeleClient.creerReservation(idResa,numAbonne,adresseStation,today,dateDebutReservation,dateFinReservation,jour_Choisi);
+				System.out.println("Votre réservation est validée : \n Numéro réservation : "+idResa+" \n Date debut réservation : "+dateDebutReservation+ " \n Date fin réservation : "+dateFinReservation+" \n Jour choisi : "+jour_Choisi+"");
+				
+
+				scannerChoix.close();
+				
+			    
+				
+		
+		
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
 	}
+	
+	 private void abonner()  {
+		    
+	        Scanner scAb = new Scanner(System.in);
+	        int choixAB;
+
+	        do{
+
+	            System.out.println("1- Renouvellement abonnement ? ");
+	            System.out.println("2- Nouveau client? ");
+	            System.out.println("3- annuler ");
+	            choixAB = scAb.nextInt();
+	        }
+	        while(choixAB!=1 && choixAB!=2 && choixAB!=3);
+	        try {
+	            
+	            if(choixAB==1){
+	                System.out.println("Veuillez saisir votre code secret ");
+	                String code_Sec = scAb.next();
+	                
+	                if (modeleClient.abonnementExiste(code_Sec)){
+	                        if(modeleClient.dateAbonnement(code_Sec)){//Si la date de renouvelement est superieur à 11 mois
+	                            modeleClient.renouvelerAbonnement(code_Sec);
+	                         }
+	                        else{
+	                            System.out.println("Vous ne pouvez pas renouveler votre abonnement ");
+	                        }
+	                    
+	                    System.out.println("Au revoooooooooir <3 <3 <3");
+	                }
+
+	                else {
+
+	                    System.exit(-1);
+	                }
+
+	            }
+	            else if (choixAB==2){
+	                UUID idUniqueClient = UUID.randomUUID();//genere un id_Client unique
+	                idUniqueClient.toString();
+	                UUID idUniqueAbonne = UUID.randomUUID();
+	                idUniqueAbonne.toString();
+
+	                System.out.println("Veuillez remplir le formulaire si dessous ");
+	                String id_Cl=modeleClient.nouveauClient(idUniqueClient.toString(),"");
+
+	                System.out.println("Saisir nom");
+
+	                String nom = scAb.next();
+	                System.out.println("Saisir Prenom");
+
+	                String prenom = scAb.next();
+	                System.out.println("Saisir date de naissance");
+
+	                String date_Naiss = scAb.next();
+	                System.out.println("Saisir sexe");
+
+	                String sexe = scAb.next();
+
+	                System.out.println("Saisir adresse");
+
+	                String adresse = scAb.next();
+
+	                System.out.println("Saisir num carte bancaire");
+
+	                int cb = scAb.nextInt();
+
+	                String cs;
+
+	                do {
+	                    System.out.println("Saisir un code secret");
+	                    cs = scAb.next();
+	                    boolean s=modeleClient.abonnementExiste(cs);
+	                    System.out.println("prob"+s);
+
+	                }
+
+	                while (modeleClient.abonnementExiste(cs)==true);
+
+	                Calendar cal = Calendar.getInstance();
+	                  cal.setTime(new Date());
+	                  cal.add(Calendar.HOUR_OF_DAY, 8760);//ajouter un an à la date actuelle
+	                 Date d=cal.getTime();
+	                modeleClient.nouveauAbonne(cs, id_Cl, nom, prenom, date_Naiss, sexe, adresse, cb, modeleClient.dateActuelle());    
+	                System.out.println("Votre abonnement est valable jusqu'au : "+d);
+	                System.out.println("Au revoooooooooir <3 <3 <3");
+	                System.exit(-1);
+	            }
+
+	            else{
+	                System.out.println("Au revoooooooooir <3 <3 <3");
+	                System.exit(-1);
+	                
+
+	            }
+	        } catch (SQLException e) {
+	            // TODO Auto-generated catch block
+	            e.printStackTrace();
+	        }
+
+
+
+
+
+	    }
+
+
 	
 	private String systemeChoisirAdresseStation() {
 		//on recupère les bornes disponible
